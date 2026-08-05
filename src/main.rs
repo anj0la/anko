@@ -1,3 +1,4 @@
+mod cli;
 fn main() {
-    println!("Hello, world!");
+    cli::parse_cli();
 }
