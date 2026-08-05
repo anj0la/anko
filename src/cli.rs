@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use crate::config::init;
 
 #[derive(Parser)]
 #[command(name = "taro")]
@@ -15,9 +16,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Set up Taro and preview initial synchronization
+    /// Initialize Taro
     Init,
-    /// Preview repository tags and their tracking status
+    /// Preview tags and tracking status
     Scan,
     /// Sync tags with GitHub issues
     Sync,
@@ -29,7 +30,7 @@ pub fn parse_cli() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Init => println!("Initializing Taro..."),
+        Commands::Init => init(),
         Commands::Scan => println!("Scanning..."),
         Commands::Sync => println!("Syncing tags..."),
         Commands::Close => println!("Closing issues..."),
