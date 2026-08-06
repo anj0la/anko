@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use crate::config::init;
+use crate::config;
 
 #[derive(Parser)]
 #[command(name = "taro")]
@@ -16,9 +16,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize Taro
+    /// Initialize taro
     Init,
-    /// Preview tags and tracking status
+    /// Preview tags and tracking status -> so it gets all of the tags
     Scan,
     /// Sync tags with GitHub issues
     Sync,
@@ -29,10 +29,17 @@ enum Commands {
 pub fn parse_cli() {
     let cli = Cli::parse();
 
-    match &cli.command {
-        Commands::Init => init(),
-        Commands::Scan => println!("Scanning..."),
-        Commands::Sync => println!("Syncing tags..."),
-        Commands::Close => println!("Closing issues..."),
+    let result = match &cli.command {
+        Commands::Init => config::init(),
+        // Commands::Scan => println!("Scanning..."),
+        //Commands::Sync => println!("Syncing tags..."),
+        // Commands::Close => println!("Closing issues..."),
+        _ => { eprintln!("unknown command"); std::process::exit(1); }
+    };
+
+    if let Err(e) = result {
+        eprintln!("Error: {:#}", e);
+        std::process::exit(1);
     }
+
 }

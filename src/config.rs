@@ -1,10 +1,12 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
+use anyhow::{Context, Result};
+use std::path::Path;
 
-#[derive(Serialize)]
-struct Config {
-    github: GitHub,
-    scan: Scan,
+#[derive(Serialize, Deserialize)]
+pub struct Config {
+    pub github: GitHub,
+    pub scan: Scan,
 }
 
 impl Config {
@@ -16,7 +18,7 @@ impl Config {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct GitHub {
     repo: String,
     token_env: String,
@@ -31,7 +33,7 @@ impl GitHub {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 struct Scan {
     include: Vec<String>,
     exclude: Vec<String>,
@@ -48,19 +50,31 @@ impl Scan {
     }
 }
 
-pub fn init() {
+pub fn init() -> Result<()> {
     println!("Initializing Taro...");
     let config = Config::new();
 
-    match toml::to_string(&config) {
-        Ok(toml_str) => to_file(&toml_str).unwrap_or_else(|e| eprintln!("Error writing file: {}", e)),
-        Err(e) => eprintln!("Error serializing to TOML: {}", e),
-    }
-    println!("Finished initializing Taro.");
+    let toml_str = toml::to_string(&config)
+        .context("failed to serialize default config to TOML")?;
+
+    create_files(&toml_str)
+        .context("failed to write taro.toml")?;
+
+    Ok(())
 }
 
-fn to_file(str: &str) -> std::io::Result<()> {
-    fs::create_dir("./taro")?; // write empty state.JSON later
-    fs::write("taro.toml", str)?;
+fn create_files(contents: &str) -> Result<()> {
+    fs::create_dir_all("./taro")
+        .context("failed to create ./taro directory")?;
+
+    if Path::new("taro.toml").exists() {
+        anyhow::bail!("taro.toml already exists, refusing to overwrite. Delete it manually if you want to reinitialize.");
+    }
+
+    fs::write("taro.toml", contents)
+        .context("failed to write taro.toml")?;
+
+    fs::write("./taro/state.json", r#"{"issues": []}"#)
+        .context("failed to write taro.toml")?;
     Ok(())
 }
