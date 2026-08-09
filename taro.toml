@@ -1,8 +1,0 @@
-[github]
-repo = "aera-lang/aera"
-token_env = "TARO_GITHUB_TOKEN"
-
-[scan]
-include = []
-exclude = [".git/**"]
-tags = ["TODO", "BUG", "HELP", "DEPR"]
