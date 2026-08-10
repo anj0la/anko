@@ -71,7 +71,7 @@ impl App {
             Err(octocrab::Error::GitHub { source, .. }) if source.status_code == 404 => {
                 repo_client
                     .issues(owner, repo)
-                    .create_label(name, self.label_colour(name), "") // could update to allow colours, but nah
+                    .create_label(name, self.label_colour(name), "") 
                     .await?;
                 Ok(())
             }
