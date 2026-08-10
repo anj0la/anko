@@ -5,6 +5,16 @@ use regex::Regex;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Kind { Todo, Bug, Depr, }
 
+impl Kind {
+    pub fn to_string(kind: &Kind) -> String {
+        match kind {
+            Kind::Todo => String::from("TODO"),
+            Kind::Bug => String::from("BUG"),
+            Kind::Depr => String::from("DEPR")
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TrackedTag {
     pub kind: Kind,
@@ -18,7 +28,6 @@ static LINE_REG: LazyLock<Regex> = LazyLock::new(|| { Regex::new(r"^\s*(?://|#)\
 });
 static BLOCK_REG: LazyLock<Regex> = LazyLock::new(|| { Regex::new(r"^\s*\(\*\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+?)\s*\*\)\s*$").unwrap() 
 });
-
 
 /// Attempts to parse one line as a tagged comment
 /// Returns None if the line doesn't match the pattern at all

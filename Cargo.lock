@@ -601,6 +601,7 @@ dependencies = [
  "dotenvy",
  "jsonwebtoken",
  "octocrab",
+ "scanner",
  "tokio",
 ]
 
