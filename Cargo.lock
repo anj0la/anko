@@ -130,6 +130,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "github"
+version = "0.1.0"
+
+[[package]]
 name = "globset"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
