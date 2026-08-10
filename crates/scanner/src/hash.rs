@@ -1,7 +1,9 @@
-use crate::parse::Kind;
 use std::path::Path;
 use sha2::{Sha256, Digest};
 
+use crate::parse::Kind;
+
+/// Computes a hash using the SHA256 algorithm.
 pub fn compute_hash(kind: &Kind, labels: &[String], message: &str, file: &Path) -> String {
     let mut hasher = Sha256::new();
     let mut sorted_list = labels.to_vec();

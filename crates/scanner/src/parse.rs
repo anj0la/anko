@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use regex::Regex;
 use std::sync::LazyLock;
+use regex::Regex;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Kind { Todo, Bug, Depr, }
