@@ -1,9 +1,9 @@
+use ignore::WalkBuilder;
 use std::fs;
 use std::path::Path;
-use ignore::WalkBuilder;
 
-use crate::parse::{self, Kind, TrackedTag};
 use crate::hash;
+use crate::parse::{self, Kind, TrackedTag};
 
 #[derive(Debug)]
 pub enum ScanError {
@@ -36,7 +36,8 @@ pub fn scan_tree(root: &Path) -> Vec<TrackedTag> {
         match result {
             Ok(entry) => {
                 let is_file = entry.file_type().map_or(false, |ft| ft.is_file());
-                if !is_file { // skips directories
+                if !is_file {
+                    // skips directories
                     continue;
                 }
                 match scan_file(entry.path(), root) {
@@ -51,7 +52,6 @@ pub fn scan_tree(root: &Path) -> Vec<TrackedTag> {
     }
 
     tracked_tags
-
 }
 
 fn scan_file(path: &Path, root: &Path) -> Result<Vec<TrackedTag>, ScanError> {
@@ -130,7 +130,11 @@ mod scan_tests {
     #[test]
     fn file_with_no_tags_contributes_nothing() {
         let dir = tempdir().unwrap();
-        fs::write(dir.path().join("main.rs"), "fn main() {}\n// just a comment\n").unwrap();
+        fs::write(
+            dir.path().join("main.rs"),
+            "fn main() {}\n// just a comment\n",
+        )
+        .unwrap();
 
         let tags = scan_tree(dir.path());
 
@@ -151,7 +155,11 @@ mod scan_tests {
         let dir = tempdir().unwrap();
         let target_dir = dir.path().join("target");
         fs::create_dir(&target_dir).unwrap();
-        fs::write(target_dir.join("generated.rs"), "// TODO: should be ignored\n").unwrap();
+        fs::write(
+            target_dir.join("generated.rs"),
+            "// TODO: should be ignored\n",
+        )
+        .unwrap();
         fs::write(dir.path().join("main.rs"), "// TODO: should be found\n").unwrap();
 
         let tags = scan_tree(dir.path());
@@ -164,7 +172,11 @@ mod scan_tests {
     fn gitignored_file_is_excluded() {
         let dir = tempdir().unwrap();
         fs::write(dir.path().join(".gitignore"), "ignored.rs\n").unwrap();
-        fs::write(dir.path().join("ignored.rs"), "// TODO: should be ignored\n").unwrap();
+        fs::write(
+            dir.path().join("ignored.rs"),
+            "// TODO: should be ignored\n",
+        )
+        .unwrap();
         fs::write(dir.path().join("main.rs"), "// TODO: should be found\n").unwrap();
 
         let tags = scan_tree(dir.path());

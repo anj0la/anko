@@ -1,8 +1,8 @@
-use std::path::Path;
 use flate2::read::GzDecoder;
 use http_body_util::BodyExt;
 use octocrab::Octocrab;
 use octocrab::params::repos::Commitish;
+use std::path::Path;
 use tar::Archive;
 
 use crate::app::BoxError;

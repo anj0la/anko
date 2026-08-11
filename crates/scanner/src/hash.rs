@@ -1,5 +1,5 @@
+use sha2::{Digest, Sha256};
 use std::path::Path;
-use sha2::{Sha256, Digest};
 
 use crate::parse::Kind;
 
@@ -31,8 +31,18 @@ mod hash_tests {
     #[test]
     fn same_input_produces_same_hash() {
         let file = Path::new("src/parser.rs");
-        let h1 = compute_hash(&Kind::Todo, &sample_labels(), "rewrite error recovery", file);
-        let h2 = compute_hash(&Kind::Todo, &sample_labels(), "rewrite error recovery", file);
+        let h1 = compute_hash(
+            &Kind::Todo,
+            &sample_labels(),
+            "rewrite error recovery",
+            file,
+        );
+        let h2 = compute_hash(
+            &Kind::Todo,
+            &sample_labels(),
+            "rewrite error recovery",
+            file,
+        );
         assert_eq!(h1, h2);
     }
 
@@ -54,16 +64,36 @@ mod hash_tests {
 
     #[test]
     fn different_file_produces_different_hash() {
-        let h1 = compute_hash(&Kind::Todo, &sample_labels(), "same message", Path::new("src/a.rs"));
-        let h2 = compute_hash(&Kind::Todo, &sample_labels(), "same message", Path::new("src/b.rs"));
+        let h1 = compute_hash(
+            &Kind::Todo,
+            &sample_labels(),
+            "same message",
+            Path::new("src/a.rs"),
+        );
+        let h2 = compute_hash(
+            &Kind::Todo,
+            &sample_labels(),
+            "same message",
+            Path::new("src/b.rs"),
+        );
         assert_ne!(h1, h2);
     }
 
     #[test]
     fn different_labels_produces_different_hash() {
         let file = Path::new("src/parser.rs");
-        let h1 = compute_hash(&Kind::Todo, &vec!["lexer".to_string()], "same message", file);
-        let h2 = compute_hash(&Kind::Todo, &vec!["parser".to_string()], "same message", file);
+        let h1 = compute_hash(
+            &Kind::Todo,
+            &vec!["lexer".to_string()],
+            "same message",
+            file,
+        );
+        let h2 = compute_hash(
+            &Kind::Todo,
+            &vec!["parser".to_string()],
+            "same message",
+            file,
+        );
         assert_ne!(h1, h2);
     }
 
@@ -79,9 +109,22 @@ mod hash_tests {
     #[test]
     fn label_order_does_not_affect_hash() {
         let file = Path::new("src/parser.rs");
-        let h1 = compute_hash(&Kind::Todo, &vec!["a".to_string(), "b".to_string()], "msg", file);
-        let h2 = compute_hash(&Kind::Todo, &vec!["b".to_string(), "a".to_string()], "msg", file);
-        assert_eq!(h1, h2, "label order should not affect the hash now that labels are sorted");
+        let h1 = compute_hash(
+            &Kind::Todo,
+            &vec!["a".to_string(), "b".to_string()],
+            "msg",
+            file,
+        );
+        let h2 = compute_hash(
+            &Kind::Todo,
+            &vec!["b".to_string(), "a".to_string()],
+            "msg",
+            file,
+        );
+        assert_eq!(
+            h1, h2,
+            "label order should not affect the hash now that labels are sorted"
+        );
     }
 
     #[test]
@@ -89,7 +132,10 @@ mod hash_tests {
         let file = Path::new("src/parser.rs");
         let h = compute_hash(&Kind::Todo, &sample_labels(), "check format", file);
         assert_eq!(h.len(), 64); // SHA-256 -> 32 bytes -> 64 hex chars
-        assert!(h.chars().all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase()));
+        assert!(
+            h.chars()
+                .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase())
+        );
     }
 
     #[test]
@@ -99,7 +145,10 @@ mod hash_tests {
         let two_normal_labels = vec!["lexer".to_string(), "parser".to_string()];
         let h1 = compute_hash(&Kind::Todo, &one_weird_label, "fix", file);
         let h2 = compute_hash(&Kind::Todo, &two_normal_labels, "fix", file);
-        assert_ne!(h1, h2, "a single label containing a comma should not collide with two separate labels");
+        assert_ne!(
+            h1, h2,
+            "a single label containing a comma should not collide with two separate labels"
+        );
     }
 
     #[test]
@@ -108,6 +157,9 @@ mod hash_tests {
         let empty: Vec<String> = vec![];
         let h1 = compute_hash(&Kind::Todo, &empty, "x", file);
         let h2 = compute_hash(&Kind::Todo, &vec!["x".to_string()], "", file);
-        assert_ne!(h1, h2, "field boundaries must not blur even when adjacent fields are empty/short");
+        assert_ne!(
+            h1, h2,
+            "field boundaries must not blur even when adjacent fields are empty/short"
+        );
     }
 }

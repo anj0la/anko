@@ -1,6 +1,6 @@
 use axum::Router;
-use std::sync::Arc;
 use dotenvy::dotenv;
+use std::sync::Arc;
 
 use github;
 use store;
@@ -12,7 +12,7 @@ pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
 async fn main() -> Result<(), BoxError> {
     dotenv().ok(); // load variables from .env into system env
     // will change to load from Secret Manager probs
-    
+
     let webhook_secret = std::env::var("WEBHOOK_SECRET")?;
     let gcp_project = std::env::var("GCP_PROJECT_ID")?;
     let app_id: u64 = std::env::var("GITHUB_APP_ID")?.parse()?;
@@ -28,7 +28,7 @@ async fn main() -> Result<(), BoxError> {
     };
 
     let app = Router::new()
-        .route("/webhook", axum::routing::post(handler::webhook_handler)) 
+        .route("/webhook", axum::routing::post(handler::webhook_handler))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;

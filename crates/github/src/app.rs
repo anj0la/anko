@@ -1,8 +1,11 @@
-use octocrab::{Octocrab, models::AppId, models::InstallationId, models::IssueState};
 use jsonwebtoken::EncodingKey;
+use octocrab::{Octocrab, models::AppId, models::InstallationId, models::IssueState};
 use std::fs;
 
-use scanner::{diff::ExistingIssue, parse::{TrackedTag, Kind}};
+use scanner::{
+    diff::ExistingIssue,
+    parse::{Kind, TrackedTag},
+};
 
 const BOT_LABEL: &str = "anko";
 
@@ -22,9 +25,7 @@ impl GitHubApp {
             .app(AppId(app_id), encoding_key)
             .build()?;
 
-        Ok(Self {
-            client: app_client,
-        })
+        Ok(Self { client: app_client })
     }
 
     pub async fn installation_client(&self, id: InstallationId) -> Result<Octocrab, BoxError> {
@@ -37,14 +38,20 @@ impl GitHubApp {
             "todo" => "fbca04",
             "bug" => "d73a4a",
             "deprecated" => "6a737d",
-            "anko" => "672422",       
-            _ => "ededed",           
+            "anko" => "672422",
+            _ => "ededed",
         }
     }
-    
-    pub async fn get_issue(&self, id: InstallationId, owner: &str, repo: &str, issue_number: u64) -> Result<Option<ExistingIssue>, BoxError> {
+
+    pub async fn get_issue(
+        &self,
+        id: InstallationId,
+        owner: &str,
+        repo: &str,
+        issue_number: u64,
+    ) -> Result<Option<ExistingIssue>, BoxError> {
         let repo_client = self.client.installation(id)?;
-        
+
         match repo_client.issues(owner, repo).get(issue_number).await {
             Ok(issue) => {
                 let existing = match issue.state {
@@ -59,7 +66,13 @@ impl GitHubApp {
         }
     }
 
-    async fn ensure_label(&self, id: InstallationId, owner: &str, repo: &str, name: &str) -> Result<(), BoxError> {
+    async fn ensure_label(
+        &self,
+        id: InstallationId,
+        owner: &str,
+        repo: &str,
+        name: &str,
+    ) -> Result<(), BoxError> {
         let repo_client = self.client.installation(id)?;
 
         match repo_client.issues(owner, repo).get_label(name).await {
@@ -67,7 +80,7 @@ impl GitHubApp {
             Err(octocrab::Error::GitHub { source, .. }) if source.status_code == 404 => {
                 repo_client
                     .issues(owner, repo)
-                    .create_label(name.to_lowercase(), self.label_colour(name), "") 
+                    .create_label(name.to_lowercase(), self.label_colour(name), "")
                     .await?;
                 Ok(())
             }
@@ -75,10 +88,17 @@ impl GitHubApp {
         }
     }
 
-    pub async fn create_issue(&self, id: InstallationId, owner: &str, repo: &str, tag: &TrackedTag) -> Result<u64, BoxError> {
+    pub async fn create_issue(
+        &self,
+        id: InstallationId,
+        owner: &str,
+        repo: &str,
+        tag: &TrackedTag,
+    ) -> Result<u64, BoxError> {
         let kind_label = Kind::to_string(&tag.kind);
 
-        self.ensure_label(id, owner, repo, kind_label.as_str()).await?;
+        self.ensure_label(id, owner, repo, kind_label.as_str())
+            .await?;
         self.ensure_label(id, owner, repo, BOT_LABEL).await?;
 
         let repo_client = self.client.installation(id)?;
@@ -105,18 +125,23 @@ impl GitHubApp {
             .await?;
 
         Ok(issue.number)
-    }   
+    }
 
-    pub async fn close_issue(&self, id: InstallationId, owner: &str, repo: &str, issue_number: u64) -> Result<(), BoxError> {
+    pub async fn close_issue(
+        &self,
+        id: InstallationId,
+        owner: &str,
+        repo: &str,
+        issue_number: u64,
+    ) -> Result<(), BoxError> {
         let repo_client = self.client.installation(id)?;
         repo_client
-        .issues(owner, repo)
-        .update(issue_number)
-        .state(octocrab::models::IssueState::Closed)
-        .send()
-        .await?;
-        
+            .issues(owner, repo)
+            .update(issue_number)
+            .state(octocrab::models::IssueState::Closed)
+            .send()
+            .await?;
+
         Ok(())
     }
-    
 }

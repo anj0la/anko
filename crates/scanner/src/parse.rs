@@ -1,16 +1,20 @@
+use regex::Regex;
 use std::path::PathBuf;
 use std::sync::LazyLock;
-use regex::Regex;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Kind { Todo, Bug, Depr, }
+pub enum Kind {
+    Todo,
+    Bug,
+    Depr,
+}
 
 impl Kind {
     pub fn to_string(kind: &Kind) -> String {
         match kind {
             Kind::Todo => String::from("TODO"),
             Kind::Bug => String::from("BUG"),
-            Kind::Depr => String::from("DEPR")
+            Kind::Depr => String::from("DEPR"),
         }
     }
 }
@@ -24,25 +28,35 @@ pub struct TrackedTag {
     pub line: usize,
     pub hash: String,
 }
-static LINE_REG: LazyLock<Regex> = LazyLock::new(|| { Regex::new(r"^\s*(?://|#)\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+)$").unwrap() 
+static LINE_REG: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*(?://|#)\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+)$").unwrap()
 });
-static BLOCK_REG: LazyLock<Regex> = LazyLock::new(|| { Regex::new(r"^\s*\(\*\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+?)\s*\*\)\s*$").unwrap() 
+static BLOCK_REG: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*\(\*\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+?)\s*\*\)\s*$").unwrap()
 });
 
 /// Attempts to parse one line as a tagged comment
 /// Returns None if the line doesn't match the pattern at all
 pub fn parse_tag_line(line: &str) -> Option<(Kind, Vec<String>, String)> {
-    let caps = LINE_REG.captures(line).or_else(|| BLOCK_REG.captures(line))?;
+    let caps = LINE_REG
+        .captures(line)
+        .or_else(|| BLOCK_REG.captures(line))?;
 
     let kind = match &caps[1] {
         "TODO" => Kind::Todo,
         "BUG" => Kind::Bug,
         "DEPR" => Kind::Depr,
-        _ => unreachable!()
+        _ => unreachable!(),
     };
-    let labels = caps.get(2).
-                map(|m| m.as_str().split(',').map(|s| s.trim().to_string()).collect())
-                .unwrap_or_default(); // each label is its own string
+    let labels = caps
+        .get(2)
+        .map(|m| {
+            m.as_str()
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect()
+        })
+        .unwrap_or_default(); // each label is its own string
 
     let message = caps[3].trim().to_string();
     Some((kind, labels, message))
@@ -52,12 +66,19 @@ pub fn parse_tag_line(line: &str) -> Option<(Kind, Vec<String>, String)> {
 
 #[cfg(test)]
 mod tests {
-    use super::*; 
+    use super::*;
 
     #[test]
     fn parses_slash_slash_with_labels() {
         let result = parse_tag_line("// TODO(lexer, parser): rewrite error recovery");
-        assert_eq!(result, Some((Kind::Todo, vec!["lexer".into(), "parser".into()], "rewrite error recovery".into())));
+        assert_eq!(
+            result,
+            Some((
+                Kind::Todo,
+                vec!["lexer".into(), "parser".into()],
+                "rewrite error recovery".into()
+            ))
+        );
     }
 
     #[test]
@@ -69,13 +90,23 @@ mod tests {
     #[test]
     fn parses_hash_style() {
         let result = parse_tag_line("# BUG(auth): token refresh race condition");
-        assert_eq!(result, Some((Kind::Bug, vec!["auth".into()], "token refresh race condition".into())));
+        assert_eq!(
+            result,
+            Some((
+                Kind::Bug,
+                vec!["auth".into()],
+                "token refresh race condition".into()
+            ))
+        );
     }
 
     #[test]
     fn parses_ocaml_block_style() {
         let result = parse_tag_line("(* DEPR(api): remove v1 endpoint *)");
-        assert_eq!(result, Some((Kind::Depr, vec!["api".into()], "remove v1 endpoint".into())));
+        assert_eq!(
+            result,
+            Some((Kind::Depr, vec!["api".into()], "remove v1 endpoint".into()))
+        );
     }
 
     #[test]
@@ -90,4 +121,3 @@ mod tests {
         assert_eq!(result, None);
     }
 }
-

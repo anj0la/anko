@@ -15,7 +15,7 @@ pub enum ExistingIssue {
 /// Given the tags currently found in code, and what's known
 /// about existing issues (keyed by hash), decide what needs to change.
 /// No network calls as `server` fetches both inputs first, then calls this.
-pub fn diff(current: &[TrackedTag], existing: &HashMap<String, ExistingIssue>,) -> Vec<SyncAction> {
+pub fn diff(current: &[TrackedTag], existing: &HashMap<String, ExistingIssue>) -> Vec<SyncAction> {
     let mut actions = Vec::new();
 
     // for every tag, check if it needs a new issue
@@ -24,17 +24,20 @@ pub fn diff(current: &[TrackedTag], existing: &HashMap<String, ExistingIssue>,) 
         current_hashes.insert(tag.hash.as_str());
 
         match existing.get(&tag.hash) {
-            None => { actions.push(SyncAction::Open(tag.clone())); }
-            Some(ExistingIssue::Open(_)) => {} // still open
+            None => {
+                actions.push(SyncAction::Open(tag.clone()));
+            }
+            Some(ExistingIssue::Open(_)) => {}   // still open
             Some(ExistingIssue::Closed(_)) => {} // manually closed
         }
     }
 
-    for (hash, issue) in existing { 
+    for (hash, issue) in existing {
         if current_hashes.contains(hash.as_str()) {
             continue; // still in code & already handled
         }
-        if let ExistingIssue::Open(issue_number) = issue { // hash is no longer present, close it
+        if let ExistingIssue::Open(issue_number) = issue {
+            // hash is no longer present, close it
             actions.push(SyncAction::Close {
                 hash: hash.clone(),
                 issue_number: *issue_number,
