@@ -37,12 +37,21 @@ impl GitHubApp {
         match name {
             "todo" => "fbca04",
             "bug" => "d73a4a",
-            "deprecated" => "6a737d",
+            "depr" => "6a737d",
             "anko" => "672422",
             _ => "ededed",
         }
     }
 
+    fn label_description(&self, name: &str) -> &'static str {
+        match name {
+            "todo" => "Tasks that need to be completed",
+            "bug" => "Something isn't working",
+            "depr" => "Code or functionality that should no longer be used",
+            "anko" => "Issues automatically created or managed by Anko",
+            _ => "",
+        }
+    }
     pub async fn get_issue(
         &self,
         id: InstallationId,
@@ -80,7 +89,7 @@ impl GitHubApp {
             Err(octocrab::Error::GitHub { source, .. }) if source.status_code == 404 => {
                 repo_client
                     .issues(owner, repo)
-                    .create_label(name.to_lowercase(), self.label_colour(name), "")
+                    .create_label(name.to_lowercase(), self.label_colour(name), self.label_description(name))
                     .await?;
                 Ok(())
             }
