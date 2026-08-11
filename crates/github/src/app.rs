@@ -1,6 +1,5 @@
 use octocrab::{Octocrab, models::AppId, models::InstallationId, models::IssueState};
 use jsonwebtoken::EncodingKey;
-use secrecy::ExposeSecret;
 use std::fs;
 
 use scanner::{diff::ExistingIssue, parse::{TrackedTag, Kind}};
@@ -28,12 +27,9 @@ impl GitHubApp {
         })
     }
 
-    /// Exchanges the App's JWT for a short-lived installation access
-    /// token, returned as a raw string (needed for the git clone URL,
-    /// not just an authenticated Octocrab client).
-    pub async fn installation_token(&self, id: InstallationId) -> Result<String, BoxError> {
-        let (_client, token) = self.client.installation_and_token(id).await?;
-        Ok(token.expose_secret().to_string())
+    pub async fn installation_client(&self, id: InstallationId) -> Result<Octocrab, BoxError> {
+        let (client, _token) = self.client.installation_and_token(id).await?;
+        Ok(client)
     }
 
     fn label_colour(&self, name: &str) -> &'static str {
@@ -71,7 +67,7 @@ impl GitHubApp {
             Err(octocrab::Error::GitHub { source, .. }) if source.status_code == 404 => {
                 repo_client
                     .issues(owner, repo)
-                    .create_label(name, self.label_colour(name), "") 
+                    .create_label(name.to_lowercase(), self.label_colour(name), "") 
                     .await?;
                 Ok(())
             }
@@ -88,12 +84,11 @@ impl GitHubApp {
         let repo_client = self.client.installation(id)?;
 
         let body = format!(
-            r#"## Source
+            r#"Found in: `{}`
 
-            - File: `{}`
-            - Kind: `{}`
-            "#,
-            tag.file.to_string_lossy().into_owned(),
+`{}` detected by anko.
+"#,
+            format!("{}:{}", tag.file.to_string_lossy().into_owned(), tag.line),
             Kind::to_string(&tag.kind),
         );
 

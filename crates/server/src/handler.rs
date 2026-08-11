@@ -5,6 +5,7 @@ use hmac::{Hmac, Mac, KeyInit};
 use sha2::Sha256;
 
 use std::collections::HashMap;
+use std::fs;
 
 use github::GitHubApp;
 use store::Database;
@@ -66,11 +67,7 @@ fn verify_signature(secret: &str, body: &[u8], signature_header: &str) -> bool {
 }
 
 #[axum::debug_handler]
-pub async fn webhook_handler(
-    State(state): State<AppState>,
-    headers: HeaderMap,
-    body: Bytes,
-) -> Result<StatusCode, StatusCode> {
+pub async fn webhook_handler(State(state): State<AppState>, headers: HeaderMap, body: Bytes) -> Result<StatusCode, StatusCode> {
     let signature = headers
         .get("X-Hub-Signature-256")
         .and_then(|v| v.to_str().ok())
@@ -92,17 +89,18 @@ pub async fn webhook_handler(
     let event: PushEvent = serde_json::from_slice(&body)
         .map_err(|_| StatusCode::BAD_REQUEST)?;
 
+    const ZERO_SHA: &str = "0000000000000000000000000000000000000000";
     let expected_ref = format!("refs/heads/{}", event.repository.default_branch);
-    if event.r#ref != expected_ref || event.deleted {
+    if event.r#ref != expected_ref || event.deleted || event.after == ZERO_SHA {
         return Ok(StatusCode::OK);
     }
 
     let installation_id = octocrab::models::InstallationId(event.installation.id);
     let owner = event.repository.owner.login;
     let repo = event.repository.name;
-    let branch = event.repository.default_branch;
+    let commit_sha = event.after;
 
-    sync_repo(&state, installation_id, &owner, &repo, &branch)
+    sync_repo(&state, installation_id, &owner, &repo, &commit_sha)
         .await
         .map_err(|e| {
             eprintln!("sync failed for {owner}/{repo}: {e}");
@@ -112,34 +110,24 @@ pub async fn webhook_handler(
     Ok(StatusCode::OK)
 }
 
+
 async fn checkout_and_scan(
-    installation_token: &str,
+    client: &octocrab::Octocrab,
     owner: &str,
     repo: &str,
-    branch: &str,
+    commit_sha: &str,
 ) -> Result<Vec<TrackedTag>, BoxError> {
     let tmp_dir = tempfile::tempdir()?;
-    let path = tmp_dir.path();
 
-    let clone_url = format!(
-        "https://x-access-token:{}@github.com/{}/{}.git",
-        installation_token, owner, repo
-    );
+    github::download_repo_tarball(client, owner, repo, commit_sha.to_string(), tmp_dir.path()).await?;
 
-    let status = tokio::process::Command::new("git")
-        .args([
-            "clone", "--depth", "1", "--single-branch",
-            "--branch", branch, &clone_url,
-        ])
-        .arg(path)
-        .status()
-        .await?;
+    let repo_root = fs::read_dir(tmp_dir.path())?
+        .filter_map(|e| e.ok())
+        .find(|e| e.path().is_dir())
+        .map(|e| e.path())
+        .ok_or("tarball had no top-level directory")?;
 
-    if !status.success() {
-        return Err("git clone failed".into());
-    }
-
-    let tags = scan_tree(path);
+    let tags = scan_tree(&repo_root);
     Ok(tags)
 }
 
@@ -148,10 +136,10 @@ pub async fn sync_repo(
     installation_id: octocrab::models::InstallationId,
     owner: &str,
     repo: &str,
-    branch: &str,
+    commit_sha: &str,
 ) -> Result<(), BoxError> {
-    let token = state.github.installation_token(installation_id).await?;
-    let current = checkout_and_scan(&token, owner, repo, branch).await?;
+    let client = state.github.installation_client(installation_id).await?;
+    let current = checkout_and_scan(&client, owner, repo, commit_sha).await?;
 
     let mut existing: HashMap<String, ExistingIssue> = HashMap::new();
     for tag in &current {

@@ -14,8 +14,6 @@ async fn main() -> Result<(), BoxError> {
     // will change to load from Secret Manager probs
     
     let webhook_secret = std::env::var("WEBHOOK_SECRET")?;
-    println!("DEBUG rust secret bytes: {:?}", webhook_secret.as_bytes());
-    println!("DEBUG rust secret len: {}", webhook_secret.len());
     let gcp_project = std::env::var("GCP_PROJECT_ID")?;
     let app_id: u64 = std::env::var("GITHUB_APP_ID")?.parse()?;
     let private_key_path = std::env::var("GITHUB_APP_PRIVATE_KEY_PATH")?;

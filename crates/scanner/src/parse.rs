@@ -21,9 +21,9 @@ pub struct TrackedTag {
     pub labels: Vec<String>,
     pub message: String,
     pub file: PathBuf,
+    pub line: usize,
     pub hash: String,
 }
-
 static LINE_REG: LazyLock<Regex> = LazyLock::new(|| { Regex::new(r"^\s*(?://|#)\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+)$").unwrap() 
 });
 static BLOCK_REG: LazyLock<Regex> = LazyLock::new(|| { Regex::new(r"^\s*\(\*\s*(TODO|BUG|DEPR)\s*(?:\(([^)]*)\))?\s*:\s*(.+?)\s*\*\)\s*$").unwrap() 

@@ -57,6 +57,7 @@ mod diff_tests {
             labels: vec![],
             message: "sample message".to_string(),
             file: PathBuf::from("src/main.rs"),
+            line: 1,
             hash: hash.to_string(),
         }
     }

@@ -10,3 +10,6 @@ octocrab = "0.54.1"
 tokio = { version = "1.53.1", features = ["full"] }
 scanner = { path = "../scanner" }
 secrecy = "0.10.3"
+tar = "0.4.46"
+flate2 = "1.1.9"
+http-body-util = "0.1.4"

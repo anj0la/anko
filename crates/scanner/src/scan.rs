@@ -39,7 +39,7 @@ pub fn scan_tree(root: &Path) -> Vec<TrackedTag> {
                 if !is_file { // skips directories
                     continue;
                 }
-                match scan_file(entry.path()) {
+                match scan_file(entry.path(), root) {
                     Ok(mut tags) => tracked_tags.append(&mut tags),
                     Err(err) => {
                         eprintln!("warn: skipping {}: {:?}", entry.path().display(), err);
@@ -54,24 +54,24 @@ pub fn scan_tree(root: &Path) -> Vec<TrackedTag> {
 
 }
 
-fn scan_file(path: &Path) -> Result<Vec<TrackedTag>, ScanError> {
+fn scan_file(path: &Path, root: &Path) -> Result<Vec<TrackedTag>, ScanError> {
     let contents = fs::read_to_string(path)?;
+    let rel_path = path.strip_prefix(root).unwrap_or(path).to_path_buf();
 
     let mut tags = Vec::new();
-
-    for line in contents.lines() {
+    for (i, line) in contents.lines().enumerate() {
         if let Some((kind, labels, message)) = parse::parse_tag_line(line) {
-            let hash = hash::compute_hash(&kind, &labels, &message, path);
+            let hash = hash::compute_hash(&kind, &labels, &message, &rel_path);
             tags.push(TrackedTag {
                 kind,
                 labels,
                 message,
-                file: path.to_path_buf(),
+                file: rel_path.clone(),
+                line: i + 1, // 1-indexed
                 hash,
             });
         }
     }
-
     Ok(tags)
 }
 
@@ -211,7 +211,7 @@ mod scan_tests {
         let path = dir.path().join("main.rs");
         fs::write(&path, "fn main() {}\n").unwrap();
 
-        let tags = scan_file(&path).unwrap();
+        let tags = scan_file(&path, dir.path()).unwrap();
 
         assert!(tags.is_empty());
     }
@@ -221,7 +221,7 @@ mod scan_tests {
         let dir = tempdir().unwrap();
         let path = dir.path().join("does_not_exist.rs");
 
-        let result = scan_file(&path);
+        let result = scan_file(&path, dir.path());
 
         assert!(result.is_err());
     }
