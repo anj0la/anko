@@ -1,0 +1,20 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.9", features = ["macros"] }
+hyper = "1.11.0"
+tokio = { version = "1.53.1", features = ["full"] }
+dotenvy = "0.15.7"
+hmac = "0.13.0"
+hex = "0.4.3"
+sha2 = "0.11.0"
+tempfile = "3"
+store = { path = "../store" }
+github = { path = "../github" }
+scanner = { path = "../scanner" }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+octocrab = "0.54.1"

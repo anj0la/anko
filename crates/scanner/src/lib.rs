@@ -1,4 +1,4 @@
 pub mod diff;
-mod hash;
 pub mod parse;
-mod scan;
+pub mod scan;
+mod hash;
