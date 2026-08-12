@@ -1,4 +1,4 @@
-name: Deploy Taro to Cloud Run
+name: Deploy Anko to Cloud Run
 
 on:
   push:
