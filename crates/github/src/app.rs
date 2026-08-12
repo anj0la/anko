@@ -90,7 +90,11 @@ impl GitHubApp {
                 let lower = name.to_lowercase();
                 repo_client
                     .issues(owner, repo)
-                    .create_label(&lower, self.label_colour(&lower), self.label_description(&lower))
+                    .create_label(
+                        &lower,
+                        self.label_colour(&lower),
+                        self.label_description(&lower),
+                    )
                     .await?;
                 Ok(())
             }

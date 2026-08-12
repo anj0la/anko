@@ -38,19 +38,14 @@ impl Database {
 
         Ok(doc.map(|d| d.issue_number))
     }
-    
+
     pub async fn list(&self, owner: &str, repo: &str) -> Result<HashMap<String, u64>, BoxError> {
         let docs: Vec<IssueDoc> = self
             .db
             .fluent()
             .select()
             .from(ISSUE_COLLECTION_NAME)
-            .filter(|q| {
-                q.for_all([
-                    q.field("owner").eq(owner),
-                    q.field("repo").eq(repo),
-                ])
-            })
+            .filter(|q| q.for_all([q.field("owner").eq(owner), q.field("repo").eq(repo)]))
             .obj()
             .query()
             .await?;
