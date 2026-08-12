@@ -35,7 +35,7 @@ impl GitHubApp {
 
     fn label_colour(&self, name: &str) -> &'static str {
         match name {
-            "todo" => "fbca04",
+            "todo" => "6f42c1",
             "bug" => "d73a4a",
             "depr" => "6a737d",
             "anko" => "672422",
@@ -87,9 +87,10 @@ impl GitHubApp {
         match repo_client.issues(owner, repo).get_label(name).await {
             Ok(_) => Ok(()), // already exists
             Err(octocrab::Error::GitHub { source, .. }) if source.status_code == 404 => {
+                let lower = name.to_lowercase();
                 repo_client
                     .issues(owner, repo)
-                    .create_label(name.to_lowercase(), self.label_colour(name), self.label_description(name))
+                    .create_label(&lower, self.label_colour(&lower), self.label_description(&lower))
                     .await?;
                 Ok(())
             }
