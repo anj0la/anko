@@ -26,3 +26,9 @@ On every push, anko-bot scans changed source for structured tags like `// TODO(p
 - No fuzzy matching for edited/moved tags. A reworded TODO closes the old issue and opens a new one.
 - No custom config (include/exclude paths, custom labels), `.gitignore` only.
 - An issue closed by anko-bot and then manually *reopened* on GitHub isn't picked back up by sync.
+
+## Development
+
+This project was intentionally developed as an experiment in AI-assisted
+development. See [Development Notes](docs/development.md) for more about
+how AI was used during development.
