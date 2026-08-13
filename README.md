@@ -48,5 +48,5 @@ On every push, anko-bot scans changed source for structured tags like `// TODO(p
 ## Development
 
 This project was intentionally developed as an experiment in AI-assisted
-development. See [Development Notes](docs/development.md) for more about
+development. See [Development](docs/development.md) for more about
 how AI was used during development.
