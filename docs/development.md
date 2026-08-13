@@ -1,12 +1,10 @@
-# Development Notes
-
-## Why I Built This
+# Why I Built This
 
 I initially came up with the idea because I wanted a tool that would let me create issues directly from comments in my code. I found that I was already making these kinds of comments in my other projects, so I figured this was something I could build in a couple of days if I kept the first version small.
 
 I also wanted to use the project as an opportunity to gain experience with things I hadn't worked with much before, particularly Rust, GitHub App authentication, and GCP/Firestore.
 
-## AI-Assisted Development
+# AI-Assisted Development
 
 I used this project as an experiment in AI-assisted development. I intentionally used AI more heavily than I normally do to get some real experience incorporating it into my development workflow.
 

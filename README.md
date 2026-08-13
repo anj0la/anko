@@ -1,4 +1,16 @@
-# anko-bot
+# anko
+
+<p align="center">
+  <img src="images/anko-logo.png" width="256" alt="Anko logo">
+</p>
+
+<div align="center">
+
+[![Build](https://github.com/anj0la/anko/actions/workflows/deploy.yml/badge.svg)](https://github.com/anj0la/anko/actions/workflows/deploy.yml)
+[![License](https://img.shields.io/github/license/anj0la/anko)](LICENSE)
+[![AI Usage Disclosed](https://img.shields.io/badge/AI%20Usage-Disclosed-blue)](docs/development.md)
+
+</div>
 
 A GitHub App that keeps GitHub Issues automatically in sync with `TODO` / `BUG` / `DEPR` comments in your source code, without writing anything back into your repository.
 

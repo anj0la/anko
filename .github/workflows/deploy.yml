@@ -1,4 +1,4 @@
-name: Deploy Anko to Cloud Run
+name: Deploy
 
 on:
   push:
