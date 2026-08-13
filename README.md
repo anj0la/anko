@@ -1,3 +1,4 @@
+
 # anko
 
 <p align="center">
@@ -16,11 +17,16 @@ A GitHub App that keeps GitHub Issues automatically in sync with `TODO` / `BUG` 
 
 On every push, anko-bot scans changed source for structured tags like `// TODO(parser): rewrite error recovery`, opens a GitHub issue for new ones, and closes issues for tags that have since disappeared from the code.
 
+## Demo
+
+<img width="800" height="450" alt="anko_demo" src="https://github.com/user-attachments/assets/efc78fd7-75d5-476f-b4d9-6b06203b84d9" />
+
 ## How it works
 
 - Each tag's identity is derived from its kind, labels, message and file, so moving a TODO within a file doesn't trigger a fake close/reopen.
 - Anko respects `.gitignore` plus a small hardcoded denylist (`.git`, `node_modules`, `target`, `vendor`, `dist`, `build`).
 - Manually closing an anko-bot issue will never silently reopen the issue again, even if the underlying comment is still in the code.
+
 
 ## Architecture
 
